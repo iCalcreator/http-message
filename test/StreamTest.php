@@ -2,35 +2,32 @@
 /**
  * http-message, a Psr\Http\Message implementation
  *
- * copyright (c) 2019 Kjell-Inge Gustafsson, kigkonsult, All rights reserved
- * Link      https://kigkonsult.se
- * Package   http-message
- * Version   1.0
- * License   Subject matter of licence is the software http-message.
- *           The above copyright, link, package and version notices and
- *           this licence notice shall be included in all copies or
- *           substantial portions of the http-message.
- *
- *           http-message is free software: you can redistribute it and/or modify
- *           it under the terms of the GNU Lesser General Public License as published
- *           by the Free Software Foundation, either version 3 of the License,
- *           or (at your option) any later version.
- *
- *           http-message is distributed in the hope that it will be useful,
- *           but WITHOUT ANY WARRANTY; without even the implied warranty of
- *           MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *           GNU Lesser General Public License for more details.
- *
- *           You should have received a copy of the GNU Lesser General Public License
- *           along with http-message. If not, see <https://www.gnu.org/licenses/>.
- *
  * This file is part of http-message.
+ *
+ * @author    Kjell-Inge Gustafsson, kigkonsult <ical@kigkonsult.se>
+ * @copyright 2019-2021 Kjell-Inge Gustafsson, kigkonsult, All rights reserved
+ * @link      https://kigkonsult.se
+ * @license   Subject matter of licence is the software http-message.
+ *            The above copyright, link and this licence notice shall be
+ *            included in all copies or substantial portions of the http-message.
+ *
+ *            http-message is free software: you can redistribute it and/or modify
+ *            it under the terms of the GNU Lesser General Public License as
+ *            published by the Free Software Foundation, either version 3 of
+ *            the License, or (at your option) any later version.
+ *
+ *            http-message is distributed in the hope that it will be useful,
+ *            but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *            GNU Lesser General Public License for more details.
+ *
+ *            You should have received a copy of the GNU Lesser General Public License
+ *            along with http-message. If not, see <https://www.gnu.org/licenses/>.
  */
-
+declare( strict_types = 1 );
 namespace Kigkonsult\Http\Message;
 
 use PHPUnit\Framework\TestCase;
-use InvalidArgumentException;
 use Exception;
 
 /**
@@ -47,7 +44,8 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
 
     private static $fileName = [];
 
-    public static function tearDownAfterClass() {
+    public static function tearDownAfterClass()
+    {
         foreach( self::$fileName as $file ) {
             unlink( $file );
         }
@@ -58,7 +56,8 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
      * @param string $data
      * @return resource
      */
-    private function getResourceHandle( $data ) {
+    private function getResourceHandle( string $data )
+    {
         $fileName         = tempnam( sys_get_temp_dir(), "test" );
         self::$fileName[] = $fileName;
         $handle           = fopen( $fileName, "wb+" );
@@ -69,7 +68,8 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
     /**
      * streamTest1+2 provider
      */
-    public function streamTestProvider() {
+    public function streamTestProvider() : array
+    {
 
         $dataArr       = [];
 
@@ -124,9 +124,9 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
         $dataArr[] = [
             31,
             null,
-            $this->getResourceHandle( null ),
+            $this->getResourceHandle( '' ),
             null,
-            null,
+            '',
         ];
 
         $dataArr[] = [
@@ -153,12 +153,13 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
      * @param string $expected
      */
     public function streamTest1(
-        $case,
+        int $case,
         $content,
         $streamWrapper,
         $mode,
         $expected
-    ) {
+    )
+    {
         $this->streamTestX(
             100 + $case,
             new Stream( $content, $streamWrapper, $mode ),
@@ -179,12 +180,13 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
      * @param string $expected
      */
     public function streamTest2(
-        $case,
+        int $case,
         $content,
         $streamWrapper,
         $mode,
         $expected
-    ) {
+    )
+    {
         $this->streamTestX(
             200 + $case,
             Stream::factory( $content, $streamWrapper, $mode ),
@@ -204,39 +206,50 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
      * @param string $mode
      * @param string $expected
      */
-    public function streamTest3(
-        $case,
+    public function streamTest345(
+        int $case,
         $content,
         $streamWrapper,
         $mode,
         $expected
-    ) {
-        if( is_resource( $streamWrapper )) {
-            $this->streamTestX(
-                300 + $case,
-                Stream::factoryFromResource( $streamWrapper ),
-                $expected
-            );
-        }
-        else {
-            $this->streamTestX(
-                400 + $case,
-                Stream::factoryFromString( $content, $streamWrapper, $mode ),
-                $expected
-            );
-        }
+    )
+    {
+        switch( true ) {
+            case is_resource( $streamWrapper ) :
+                $this->streamTestX(
+                    300 + $case,
+                    Stream::factoryFromResource( $streamWrapper ),
+                    $expected
+                );
+                break;
+            case ( ! empty( $content )) :
+                $this->streamTestX(
+                    400 + $case,
+                    Stream::factoryFromString( $content  ),
+                    $expected
+                );
+                break;
+            default :
+                $this->streamTestX(
+                    500 + $case,
+                    Stream::factory( $content, $streamWrapper, $mode ),
+                    $expected
+                );
+                break;
+        } // end switch
     }
 
     /**
      * @param int    $case
-     * @param Stream $stream
+     * @param stream $stream
      * @param string $expected
      */
     public function streamTestX(
-        $case,
+        int $case,
         $stream,
         $expected
-    ) {
+    )
+    {
         static $FMTERR = 'Error %d in case #%d';
 
         $this->assertTrue(
@@ -265,7 +278,7 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
             sprintf( $FMTERR, 5, $case )
         );
 
-        $contentLength = strlen( $expected );
+        $contentLength = strlen( $expected ?? '' );
         $this->assertEquals(
             $contentLength,
             $stream->getSize(),
@@ -298,12 +311,13 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
     /**
      * streamTest4 provider
      */
-    public function streamTest4Provider() {
+    public function streamTest4Provider() : array
+    {
 
         $dataArr       = [];
 
         $dataArr[] = [
-            41,
+            701,
             'content',
             'php://memory',
             'r'
@@ -323,7 +337,7 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
      * @param string wrapper
      * @param string $mode
      */
-    public function streamTest4(
+    public function streamTest7(
         $case,
         $content,
         $wrapper,
@@ -342,5 +356,4 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
             sprintf( $FMTERR, $case )
         );
     }
-
 }

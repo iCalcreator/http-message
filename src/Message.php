@@ -2,31 +2,29 @@
 /**
  * http-message, a Psr\Http\Message implementation
  *
- * Copyright (c) 2019 Kjell-Inge Gustafsson, kigkonsult, All rights reserved
- * Link      https://kigkonsult.se
- * Package   http-message
- * Version   1.0
- * License   Subject matter of licence is the software http-message.
- *           The above copyright, link, package and version notices and
- *           this licence notice shall be included in all copies or
- *           substantial portions of the http-message.
- *
- *           http-message is free software: you can redistribute it and/or modify
- *           it under the terms of the GNU Lesser General Public License as published
- *           by the Free Software Foundation, either version 3 of the License,
- *           or (at your option) any later version.
- *
- *           http-message is distributed in the hope that it will be useful,
- *           but WITHOUT ANY WARRANTY; without even the implied warranty of
- *           MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *           GNU Lesser General Public License for more details.
- *
- *           You should have received a copy of the GNU Lesser General Public License
- *           along with http-message. If not, see <https://www.gnu.org/licenses/>.
- *
  * This file is part of http-message.
+ *
+ * @author    Kjell-Inge Gustafsson, kigkonsult <ical@kigkonsult.se>
+ * @copyright 2019-2021 Kjell-Inge Gustafsson, kigkonsult, All rights reserved
+ * @link      https://kigkonsult.se
+ * @license   Subject matter of licence is the software http-message.
+ *            The above copyright, link and this licence notice shall be
+ *            included in all copies or substantial portions of the http-message.
+ *
+ *            http-message is free software: you can redistribute it and/or modify
+ *            it under the terms of the GNU Lesser General Public License as
+ *            published by the Free Software Foundation, either version 3 of
+ *            the License, or (at your option) any later version.
+ *
+ *            http-message is distributed in the hope that it will be useful,
+ *            but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *            GNU Lesser General Public License for more details.
+ *
+ *            You should have received a copy of the GNU Lesser General Public License
+ *            along with http-message. If not, see <https://www.gnu.org/licenses/>.
  */
-
+declare( strict_types = 1 );
 namespace Kigkonsult\Http\Message;
 
 use Psr\Http\Message\MessageInterface;
@@ -54,66 +52,68 @@ use function ucfirst;
  */
 class Message implements MessageInterface
 {
+    /**
+     * @var string
+     */
+    private static $EMPTY = '';
 
     /**
      * @var string  -  default HTTP protocol version
-     * @access protected
      */
     protected static $defaultPV = '1.1';
 
     /**
      * @var string  -  HTTP protocol version
-     * @access protected
      */
     protected $protocolVersion = null;
 
     /**
      * @var array  -  associative array of the message's header
-     * @access protected
      */
     protected $headers = [];
 
     /**
      * @var array  -  associative array of the message's headerNames
-     * @access protected
      */
     protected $headerNames = [];
 
     /**
      * @var StreamInterface  -  message body
-     * @access protected
      */
     protected $body = null;
 
     /**
-     * @param null|string|StreamInterface $body
+     * @param null|string|resource|StreamInterface $body
      * @param null|string[]        $headers
      * @param null|string          $protocolVersion
-     * @throws InvalidArgumentException on any invalid element.
+     * @throws InvalidArgumentException on any invalid argument.
      */
     public function __construct(
         $body            = null,
         $headers         = null,
         $protocolVersion = null
-    ) {
-        $this->setBody( $body );
+    )
+    {
+        $this->setBody( $body ?? self::$EMPTY );
         foreach( (array) $headers as $name => $value ) {
             $this->setHeader( $name, $value );
         }
-        $this->protocolVersion = ( empty( $protocolVersion )) ? self::$defaultPV : $protocolVersion;
+        $this->protocolVersion = ( $protocolVersion ?? self::$defaultPV );
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getProtocolVersion() {
+    public function getProtocolVersion() : string
+    {
         return $this->protocolVersion;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function withProtocolVersion( $version ) {
+    public function withProtocolVersion( $version ) : self
+{
         $new = clone $this;
         $new->protocolVersion = $version;
         return $new;
@@ -122,7 +122,8 @@ class Message implements MessageInterface
     /**
      * {@inheritdoc}
      */
-    public function getHeaders() {
+    public function getHeaders() : array
+    {
         $headers = [];
         foreach( $this->headerNames as $name => $name2 ) {
             $headers[$name] = $this->headers[$name2];
@@ -133,12 +134,11 @@ class Message implements MessageInterface
     /**
      * Return marshalled header name
      *
-     * @param $name
+     * @param string $name
      * @return string
-     * @access protected
-     * @static
      */
-    protected static function marschallHeader( $name ) {
+    protected static function marschallHeader( string $name ) : string
+    {
         $GLUE = '-';
         $headerParts = explode( $GLUE, $name );
         foreach( $headerParts as & $part ) {
@@ -150,7 +150,8 @@ class Message implements MessageInterface
     /**
      * {@inheritdoc}
      */
-    public function hasHeader( $name ) {
+    public function hasHeader( $name ) : bool
+    {
         $name = self::marschallHeader( $name );
         return isset( $this->headers[$name] );
     }
@@ -160,8 +161,10 @@ class Message implements MessageInterface
      *
      * @param string          $name
      * @param string|string[] $value
+     * @return static
      */
-    protected function setHeader( $name, $value ) {
+    protected function setHeader( string $name, $value ) : self
+    {
         $name2 = self::marschallHeader( $name );
         if( ! isset( $this->headerNames[$name] )) {
             $this->headerNames[$name] = $name2;
@@ -172,34 +175,35 @@ class Message implements MessageInterface
         foreach( (array) $value as $value ) {
             $this->headers[$name2][] = $value;
         }
+        return $this;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getHeader( $name ) {
+    public function getHeader( $name ) : array
+    {
         $name = self::marschallHeader( $name );
-        return isset( $this->headers[$name] )
-            ? $this->headers[$name]
-            : [];
+        return $this->headers[$name] ?? [];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getHeaderLine( $name ) {
-        $GLUE  = ',';
-        $EMPTY = '';
+    public function getHeaderLine( $name ) : string
+    {
+        static $GLUE  = ',';
         $name  = self::marschallHeader( $name );
         return ( isset( $this->headers[$name] ))
             ? implode( $GLUE, $this->headers[$name] )
-            : $EMPTY;
+            : self::$EMPTY;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function withHeader( $name, $value ) {
+    public function withHeader( $name, $value ) : self
+    {
         $FMTERR = 'Header %s do not exist';
         $name2  = self::marschallHeader( $name );
         if( ! isset( $this->headers[$name2] )) {
@@ -214,7 +218,8 @@ class Message implements MessageInterface
     /**
      * {@inheritdoc}
      */
-    public function withAddedHeader( $name, $value ) {
+    public function withAddedHeader( $name, $value ) : self
+    {
         $new = clone $this;
         $new->setHeader( $name, $value );
         return $new;
@@ -223,7 +228,8 @@ class Message implements MessageInterface
     /**
      * {@inheritdoc}
      */
-    public function withoutHeader( $name ) {
+    public function withoutHeader( $name ) : self
+    {
         $new = clone $this;
         self::removeHeader( $new, $name );
         return $new;
@@ -234,10 +240,9 @@ class Message implements MessageInterface
      *
      * @param Message $message
      * @param string  $name
-     * @access protected
-     * @static
      */
-    protected static function removeHeader( Message $message, $name ) {
+    protected static function removeHeader( Message $message, string $name )
+    {
         $name2 = self::marschallHeader( $name );
         if( isset( $message->headers[$name2] )) {
             unset( $message->headers[$name2] );
@@ -250,18 +255,20 @@ class Message implements MessageInterface
     /**
      * {@inheritdoc}
      */
-    public function getBody() {
+    public function getBody() : StreamInterface
+    {
         return $this->body;
     }
 
     /**
-     * Set body
+     * Set (StreamInterface) body from StreamInterface|resource|string
      *
-     * @param string|StreamInterface $body
-     * @access protected
+     * @param StreamInterface|resource|string $body
+     * @return static
      * @throws InvalidArgumentException on invalid body.
      */
-    protected function setBody( $body ) {
+    protected function setBody( $body ) : self
+    {
         $FMTERR  = 'Invalid body, not string, resource or StreamInterface';
         switch( true ) {
             case ( $body instanceof StreamInterface ) :
@@ -271,21 +278,21 @@ class Message implements MessageInterface
                 $this->body = Stream::factoryFromResource( $body );
                 break;
             case ( empty( $body ) || is_string( $body )) :
-                $this->body = Stream::factoryFromString( $body );
+                $this->body = Stream::factoryFromString( $body ?? self::$EMPTY );
                 break;
             default :
                 throw new InvalidArgumentException( $FMTERR );
-                break;
         }
+        return $this;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function withbody( StreamInterface $body ) {
+    public function withbody( StreamInterface $body ) : self
+    {
         $new       = clone $this;
         $new->body = $body;
         return $new;
     }
-
 }

@@ -2,31 +2,29 @@
 /**
  * http-message, a Psr\Http\Message implementation
  *
- * copyright (c) 2019 Kjell-Inge Gustafsson, kigkonsult, All rights reserved
- * Link      https://kigkonsult.se
- * Package   http-message
- * Version   1.0
- * License   Subject matter of licence is the software http-message.
- *           The above copyright, link, package and version notices and
- *           this licence notice shall be included in all copies or
- *           substantial portions of the http-message.
- *
- *           http-message is free software: you can redistribute it and/or modify
- *           it under the terms of the GNU Lesser General Public License as published
- *           by the Free Software Foundation, either version 3 of the License,
- *           or (at your option) any later version.
- *
- *           http-message is distributed in the hope that it will be useful,
- *           but WITHOUT ANY WARRANTY; without even the implied warranty of
- *           MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *           GNU Lesser General Public License for more details.
- *
- *           You should have received a copy of the GNU Lesser General Public License
- *           along with http-message. If not, see <https://www.gnu.org/licenses/>.
- *
  * This file is part of http-message.
+ *
+ * @author    Kjell-Inge Gustafsson, kigkonsult <ical@kigkonsult.se>
+ * @copyright 2019-2021 Kjell-Inge Gustafsson, kigkonsult, All rights reserved
+ * @link      https://kigkonsult.se
+ * @license   Subject matter of licence is the software http-message.
+ *            The above copyright, link and this licence notice shall be
+ *            included in all copies or substantial portions of the http-message.
+ *
+ *            http-message is free software: you can redistribute it and/or modify
+ *            it under the terms of the GNU Lesser General Public License as
+ *            published by the Free Software Foundation, either version 3 of
+ *            the License, or (at your option) any later version.
+ *
+ *            http-message is distributed in the hope that it will be useful,
+ *            but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *            GNU Lesser General Public License for more details.
+ *
+ *            You should have received a copy of the GNU Lesser General Public License
+ *            along with http-message. If not, see <https://www.gnu.org/licenses/>.
  */
-
+declare( strict_types = 1 );
 namespace Kigkonsult\Http\Message;
 
 use PHPUnit\Framework\TestCase;
@@ -46,7 +44,8 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
     /**
      * messageBodyTest1 provider
      */
-    public function messageBodyTest1Provider() {
+    public function messageBodyTest1Provider() : array
+    {
 
         $dataArr       = [];
 
@@ -110,16 +109,17 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
      * @dataProvider messageBodyTest1Provider
      *
      * @param int    $case
-     * @param string $protocol
+     * @param string $body
      * @param string $expected
      * @param string $file
      */
     public function messageBodyTest1(
-        $case,
+        int $case,
         $body,
         $expected,
         $file
-    ) {
+    )
+    {
         static $FMTERR = 'Error %d in case#%d';
 
         $message = new Message( $body );
@@ -139,7 +139,8 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
     /**
      * messageHeaderTest2 provider
      */
-    public function messageHeaderTest2Provider() {
+    public function messageHeaderTest2Provider() : array
+    {
 
         $dataArr       = [];
 
@@ -166,13 +167,14 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
      *
      * @param int    $case
      * @param string $headerName
-     * @param string $headerValue
+     * @param string|array $headerValue
      */
     public function messageTest2(
-        $case,
+        int $case,
         $headerName,
         $headerValue
-    ) {
+    )
+    {
         static $FMTERR   = 'Error %d in case#%d';
         static $APPENDIX = 'appendix';
 
@@ -230,7 +232,8 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
     /**
      * messageProtocolTest3 provider
      */
-    public function messageProtocolTest3Provider() {
+    public function messageProtocolTest3Provider() : array
+    {
 
         $dataArr       = [];
 
@@ -260,10 +263,11 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
      * @param string $expected
      */
     public function messageProtocolTest3(
-        $case,
+        int $case,
         $protocol,
         $expected
-    ) {
+    )
+    {
         static $FMTERR = 'Error %d in case#%d';
 
         $message = new Message( null, null, $protocol );
@@ -290,5 +294,4 @@ Quisque vel odio id tortor congue malesuada. Praesent a ex turpis. Donec pharetr
             );
         }
     }
-
 }

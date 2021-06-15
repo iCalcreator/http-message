@@ -96,14 +96,25 @@ use Kigkonsult\Http\Message\Response;
 include 'pathToSource/http-master/autoload.php';
 ```
 
+###### Support
+
+For support use [github.com] http-master. Non-emergence support issues are, unless sponsored, fixed in due time.
+
+
+###### Sponsorship
+
+Donation using <a href="https://paypal.me/kigkonsult" rel="nofollow">paypal.me/kigkonsult</a> are appreciated.
+For invoice, <a href="mailto:ical@kigkonsult.se">please e-mail</a>.
+
 ###### License
 
 This project is licensed under the LGPLv3 License
- 
- 
+
+
+[Composer]:https://getcomposer.org/
+[github.com]:https://github.com/iCalcreator/PcGen
 [Psr]:https://github.com/php-fig/http-message
 [Psr\Http\Message\MessageInterface]:https://github.com/php-fig/http-message
 [Psr\Http\Message\StreamInterface]:https://github.com/php-fig/http-message
 [Psr\Http\Message\ResponseInterface]:https://github.com/php-fig/http-message
 [Fig\Http\Message\StatusCodeInterface]:https://github.com/php-fig/http-message-util
-[Composer]:https://getcomposer.org/

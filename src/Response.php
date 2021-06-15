@@ -2,39 +2,35 @@
 /**
  * http-message, a Psr\Http\Message implementation
  *
- * Copyright (c) 2019 Kjell-Inge Gustafsson, kigkonsult, All rights reserved
- * Link      https://kigkonsult.se
- * Package   http-message
- * Version   1.0
- * License   Subject matter of licence is the software http-message.
- *           The above copyright, link, package and version notices and
- *           this licence notice shall be included in all copies or
- *           substantial portions of the http-message.
- *
- *           http-message is free software: you can redistribute it and/or modify
- *           it under the terms of the GNU Lesser General Public License as published
- *           by the Free Software Foundation, either version 3 of the License,
- *           or (at your option) any later version.
- *
- *           http-message is distributed in the hope that it will be useful,
- *           but WITHOUT ANY WARRANTY; without even the implied warranty of
- *           MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *           GNU Lesser General Public License for more details.
- *
- *           You should have received a copy of the GNU Lesser General Public License
- *           along with http-message. If not, see <https://www.gnu.org/licenses/>.
- *
  * This file is part of http-message.
+ *
+ * @author    Kjell-Inge Gustafsson, kigkonsult <ical@kigkonsult.se>
+ * @copyright 2019-2021 Kjell-Inge Gustafsson, kigkonsult, All rights reserved
+ * @link      https://kigkonsult.se
+ * @license   Subject matter of licence is the software http-message.
+ *            The above copyright, link and this licence notice shall be
+ *            included in all copies or substantial portions of the http-message.
+ *
+ *            http-message is free software: you can redistribute it and/or modify
+ *            it under the terms of the GNU Lesser General Public License as
+ *            published by the Free Software Foundation, either version 3 of
+ *            the License, or (at your option) any later version.
+ *
+ *            http-message is distributed in the hope that it will be useful,
+ *            but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *            GNU Lesser General Public License for more details.
+ *
+ *            You should have received a copy of the GNU Lesser General Public License
+ *            along with http-message. If not, see <https://www.gnu.org/licenses/>.
  */
-
+declare( strict_types = 1 );
 namespace Kigkonsult\Http\Message;
 
 use Psr\Http\Message\StreamInterface;
 use InvalidArgumentException;
 
 use function gettype;
-use function is_numeric;
-use function is_float;
 use function is_scalar;
 use function sprintf;
 
@@ -186,25 +182,25 @@ class Response extends Message implements ResponseInterface
         $body    = null,
         $status  = null,
         $headers = []
-    ) {
+    )
+    {
         parent::__construct( $body, (array) $headers );
-        if( empty( $status )) {
-            $status = self::STATUS_OK;
-        }
-        $this->setStatusCode( $status );
+        $this->setStatusCode( $status ?? self::STATUS_OK );
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getStatusCode() {
+    public function getStatusCode() : int
+    {
         return $this->statusCode;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getReasonPhrase() {
+    public function getReasonPhrase() : string
+    {
         if( empty( $this->reasonPhrase ) &&
             isset( $this->phrases[$this->statusCode] )) {
             $this->reasonPhrase = $this->phrases[$this->statusCode];
@@ -215,7 +211,8 @@ class Response extends Message implements ResponseInterface
     /**
      * {@inheritdoc}
      */
-    public function withStatus( $code, $reasonPhrase = '') {
+    public function withStatus( $code, $reasonPhrase = '' ) : ResponseInterface
+    {
         $new = clone $this;
         $new->setStatusCode( $code );
         $new->reasonPhrase = $reasonPhrase;
@@ -227,11 +224,13 @@ class Response extends Message implements ResponseInterface
      *
      * @param int $code
      * @throws InvalidArgumentException on an invalid status code.
-     * @access private
+     * @return static
      */
-    private function setStatusCode( $code ) {
+    private function setStatusCode( int $code ) : self
+    {
         self::assertStatusCode( $code );
         $this->statusCode = $code;
+        return $this;
     }
 
     /**
@@ -239,9 +238,9 @@ class Response extends Message implements ResponseInterface
      *
      * @param int $code
      * @throws InvalidArgumentException on an invalid status code.
-     * @static
      */
-    public static function assertStatusCode( $code ) {
+    public static function assertStatusCode( int $code )
+    {
         static $FMT = 'Invalid status code "%s" (%d - %d)';
         if( ! self::isStatusCodeValid( $code )) {
             throw new InvalidArgumentException(
@@ -258,13 +257,12 @@ class Response extends Message implements ResponseInterface
     /**
      * Return true i statusCode is int and 1xx-599
      *
-     * @param int $code
+     * @param mixed $code
      * @return bool
-     * @static
      */
-    public static function isStatusCodeValid( $code ) {
-        return ( is_numeric( $code ) &&
-               ! is_float( $code )   &&
+    public static function isStatusCodeValid( $code ) : bool
+    {
+        return (( $code == intval( $code ))  &&
             ( $code >= static::MIN_STATUS_CODE_VALUE ) &&
             ( $code <= static::MAX_STATUS_CODE_VALUE ));
     }
@@ -272,14 +270,16 @@ class Response extends Message implements ResponseInterface
     /**
      * {@inheritdoc}
      */
-    public function getRawBody() {
+    public function getRawBody()
+    {
         return $this->rawBody;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function isRawBodyEmpty() {
+    public function isRawBodyEmpty() : bool
+    {
         // return ( empty( $this->rawBody ));
         return ( empty( $this->rawBody ) && ( '0' != $this->rawBody ));
     }
@@ -288,7 +288,8 @@ class Response extends Message implements ResponseInterface
      * {@inheritdoc}
      */
 
-    public function withRawBody( $rawBody = null ) {
+    public function withRawBody( $rawBody = null ) : ResponseInterface
+    {
         $new          = clone $this;
         $new->rawBody = $rawBody;
         return $new;
@@ -297,7 +298,8 @@ class Response extends Message implements ResponseInterface
     /**
      * {@inheritdoc}
      */
-    public function isBodyEmpty()  {
+    public function isBodyEmpty() : bool
+    {
         return empty( $this->getBody()->getSize());
         /*
         $size = $this->getBody()->getSize();
@@ -309,7 +311,8 @@ class Response extends Message implements ResponseInterface
     /**
      * {@inheritdoc}
      */
-    public function getResponseBody() {
+    public function getResponseBody()
+    {
         if( ! $this->isRawBodyEmpty()) {
             return $this->getRawBody();
         }
@@ -324,22 +327,19 @@ class Response extends Message implements ResponseInterface
     /**
      * {@inheritdoc}
      */
-    public function isBodyLessResponse() {
+    public function isBodyLessResponse() : bool
+    {
         $statusCode = $this->getStatusCode();
         switch( true ) {
             case (( self::STATUS_CONTINUE <= $statusCode ) && ( self::STATUS_OK > $statusCode )) :
                 return true; // 1xx
-                break;
             case ( self::STATUS_NO_CONTENT == $statusCode ) :
                 return true; // 204
-                break;
             case ( self::STATUS_NOT_MODIFIED == $statusCode ) :
                 return true; // 304
-                break;
             default :
                 break;
         }
         return false;
     }
-
 }

@@ -2,31 +2,29 @@
 /**
  * http-message, a Psr\Http\Message implementation
  *
- * Copyright (c) 2019 Kjell-Inge Gustafsson, kigkonsult, All rights reserved
- * Link      https://kigkonsult.se
- * Package   http-message
- * Version   1.0
- * License   Subject matter of licence is the software http-message.
- *           The above copyright, link, package and version notices and
- *           this licence notice shall be included in all copies or
- *           substantial portions of the http-message.
- *
- *           http-message is free software: you can redistribute it and/or modify
- *           it under the terms of the GNU Lesser General Public License as published
- *           by the Free Software Foundation, either version 3 of the License,
- *           or (at your option) any later version.
- *
- *           http-message is distributed in the hope that it will be useful,
- *           but WITHOUT ANY WARRANTY; without even the implied warranty of
- *           MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *           GNU Lesser General Public License for more details.
- *
- *           You should have received a copy of the GNU Lesser General Public License
- *           along with http-message. If not, see <https://www.gnu.org/licenses/>.
- *
  * This file is part of http-message.
+ *
+ * @author    Kjell-Inge Gustafsson, kigkonsult <ical@kigkonsult.se>
+ * @copyright 2019-2021 Kjell-Inge Gustafsson, kigkonsult, All rights reserved
+ * @link      https://kigkonsult.se
+ * @license   Subject matter of licence is the software http-message.
+ *            The above copyright, link and this licence notice shall be
+ *            included in all copies or substantial portions of the http-message.
+ *
+ *            http-message is free software: you can redistribute it and/or modify
+ *            it under the terms of the GNU Lesser General Public License as
+ *            published by the Free Software Foundation, either version 3 of
+ *            the License, or (at your option) any later version.
+ *
+ *            http-message is distributed in the hope that it will be useful,
+ *            but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *            GNU Lesser General Public License for more details.
+ *
+ *            You should have received a copy of the GNU Lesser General Public License
+ *            along with http-message. If not, see <https://www.gnu.org/licenses/>.
  */
-
+declare( strict_types = 1 );
 namespace Kigkonsult\Http\Message;
 
 use Psr\Http\Message\ResponseInterface as Master;
@@ -63,7 +61,7 @@ interface ResponseInterface extends Master, StatusCodeInterface
      *
      * @return bool
      */
-    public function isRawBodyEmpty();
+    public function isRawBodyEmpty() : bool;
 
     /**
      * Return an instance with rawBody
@@ -73,7 +71,7 @@ interface ResponseInterface extends Master, StatusCodeInterface
      * @param mixed $rawBody
      * @return static
      */
-    public function withRawBody( $rawBody = null );
+    public function withRawBody( $rawBody = null ) : ResponseInterface;
 
     /**
      * Return bool true if body or rawBody is empty
@@ -82,7 +80,7 @@ interface ResponseInterface extends Master, StatusCodeInterface
      *
      * @return bool
      */
-    public function isBodyEmpty();
+    public function isBodyEmpty() : bool;
 
     /**
      * Return response body from rawBody or body(stream)
@@ -107,5 +105,5 @@ interface ResponseInterface extends Master, StatusCodeInterface
      *
      * @return bool
      */
-    public function isBodyLessResponse();
+    public function isBodyLessResponse() : bool;
 }

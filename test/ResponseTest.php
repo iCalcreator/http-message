@@ -2,31 +2,29 @@
 /**
  * http-message, a Psr\Http\Message implementation
  *
- * copyright (c) 2019 Kjell-Inge Gustafsson, kigkonsult, All rights reserved
- * Link      https://kigkonsult.se
- * Package   http-message
- * Version   1.0
- * License   Subject matter of licence is the software http-message.
- *           The above copyright, link, package and version notices and
- *           this licence notice shall be included in all copies or
- *           substantial portions of the http-message.
- *
- *           http-message is free software: you can redistribute it and/or modify
- *           it under the terms of the GNU Lesser General Public License as published
- *           by the Free Software Foundation, either version 3 of the License,
- *           or (at your option) any later version.
- *
- *           http-message is distributed in the hope that it will be useful,
- *           but WITHOUT ANY WARRANTY; without even the implied warranty of
- *           MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *           GNU Lesser General Public License for more details.
- *
- *           You should have received a copy of the GNU Lesser General Public License
- *           along with http-message. If not, see <https://www.gnu.org/licenses/>.
- *
  * This file is part of http-message.
+ *
+ * @author    Kjell-Inge Gustafsson, kigkonsult <ical@kigkonsult.se>
+ * @copyright 2019-2021 Kjell-Inge Gustafsson, kigkonsult, All rights reserved
+ * @link      https://kigkonsult.se
+ * @license   Subject matter of licence is the software http-message.
+ *            The above copyright, link and this licence notice shall be
+ *            included in all copies or substantial portions of the http-message.
+ *
+ *            http-message is free software: you can redistribute it and/or modify
+ *            it under the terms of the GNU Lesser General Public License as
+ *            published by the Free Software Foundation, either version 3 of
+ *            the License, or (at your option) any later version.
+ *
+ *            http-message is distributed in the hope that it will be useful,
+ *            but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *            GNU Lesser General Public License for more details.
+ *
+ *            You should have received a copy of the GNU Lesser General Public License
+ *            along with http-message. If not, see <https://www.gnu.org/licenses/>.
  */
-
+declare( strict_types = 1 );
 namespace Kigkonsult\Http\Message;
 
 use PHPUnit\Framework\TestCase;
@@ -41,22 +39,27 @@ use Exception;
 class ResponseTest extends TestCase
 {
 
+    /**
+     * @var string
+     */
     private $fileName = null;
 
-    protected function tearDown() {
-        if( is_file( $this->fileName )) {
+    protected function tearDown()
+    {
+        if( ! empty( $this->fileName ) && is_file( $this->fileName )) {
             unlink( $this->fileName );
         }
     }
 
     /**
-     * @param string $data
+     * @param null|mixed $data
      * @return resource
      */
-    private function getResourceHandle( $data ) {
+    private function getResourceHandle( $data )
+    {
         $this->fileName = tempnam( sys_get_temp_dir(), "test" );
         $handle         = fopen( $this->fileName, "wb+" );
-        fwrite( $handle, $data );
+        fwrite( $handle, (string) $data ?? '' );
         return $handle;
     }
 
@@ -66,7 +69,8 @@ class ResponseTest extends TestCase
      * @test
      * @ // expectedException InvalidArgumentException
      */
-    public function testSetStatusCode() {
+    public function testSetStatusCode()
+    {
         $data     = '1!2"3#4¤5%6&7/8(9)0=+?*.:,;';
         $this->getResourceHandle( $data );
         try {
@@ -84,9 +88,10 @@ class ResponseTest extends TestCase
      *
      * @test
      */
-    public function testrawBody1() {
+    public function testrawBody1()
+    {
         $response = new Response();
-        $response = $response->withRawBody( null );
+        $response = $response->withRawBody();
         $this->assertEmpty( $response->getRawBody());
         $this->assertTrue( $response->isRawBodyEmpty());
         $this->assertEquals( null, $response->getResponseBody());
@@ -95,7 +100,8 @@ class ResponseTest extends TestCase
     /**
      * testBody2 provider
      */
-    public function body2Provider() {
+    public function body2Provider() : array
+    {
 
         $dataArr       = [];
 
@@ -167,17 +173,19 @@ class ResponseTest extends TestCase
      *
      * @test
      * @dataProvider body2Provider
+     *
      * @param int    $case
      * @param string $rawBody
      * @param string $body
      * @param string $expected
      */
     public function testBody2(
-        $case,
+        int $case,
         $rawBody,
         $body,
         $expected
-    ) {
+    )
+    {
         $response = new Response();
         $response = $response->withRawBody( $rawBody );
 
@@ -208,7 +216,8 @@ class ResponseTest extends TestCase
      *
      * @test
      */
-    public function testrawBody3() {
+    public function testrawBody3()
+    {
         $data     = '1!2"3#4¤5%6&7/8(9)0=+?*.:,;';
         $response = new Response();
         $response = $response->withRawBody( $data )
@@ -225,7 +234,8 @@ class ResponseTest extends TestCase
     /**
      * testisBodyLessResponse provider
      */
-    public function isBodyLessResponseProvider() {
+    public function isBodyLessResponseProvider() : array
+    {
         $dataArr = [];
 
         $dataArr[] = [
@@ -266,9 +276,9 @@ class ResponseTest extends TestCase
      */
     public function testisBodyLessResponse(
         ResponseInterface $response,
-                          $expected
-    ) {
+        bool $expected
+    )
+    {
         $this->assertEquals( $expected, $response->isBodyLessResponse());
     }
-
 }

@@ -2,30 +2,29 @@
 /**
  * http-message, a Psr\Http\Message implementation
  *
- * Copyright (c) 2019 Kjell-Inge Gustafsson, kigkonsult, All rights reserved
- * Link      https://kigkonsult.se
- * Package   http-message
- * Version   1.0
- * License   Subject matter of licence is the software http-message.
- *           The above copyright, link, package and version notices and
- *           this licence notice shall be included in all copies or
- *           substantial portions of the http-message.
- *
- *           http-message is free software: you can redistribute it and/or modify
- *           it under the terms of the GNU Lesser General Public License as published
- *           by the Free Software Foundation, either version 3 of the License,
- *           or (at your option) any later version.
- *
- *           http-message is distributed in the hope that it will be useful,
- *           but WITHOUT ANY WARRANTY; without even the implied warranty of
- *           MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *           GNU Lesser General Public License for more details.
- *
- *           You should have received a copy of the GNU Lesser General Public License
- *           along with http-message. If not, see <https://www.gnu.org/licenses/>.
- *
  * This file is part of http-message.
+ *
+ * @author    Kjell-Inge Gustafsson, kigkonsult <ical@kigkonsult.se>
+ * @copyright 2019-2021 Kjell-Inge Gustafsson, kigkonsult, All rights reserved
+ * @link      https://kigkonsult.se
+ * @license   Subject matter of licence is the software http-message.
+ *            The above copyright, link and this licence notice shall be
+ *            included in all copies or substantial portions of the http-message.
+ *
+ *            http-message is free software: you can redistribute it and/or modify
+ *            it under the terms of the GNU Lesser General Public License as
+ *            published by the Free Software Foundation, either version 3 of
+ *            the License, or (at your option) any later version.
+ *
+ *            http-message is distributed in the hope that it will be useful,
+ *            but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *            GNU Lesser General Public License for more details.
+ *
+ *            You should have received a copy of the GNU Lesser General Public License
+ *            along with http-message. If not, see <https://www.gnu.org/licenses/>.
  */
+declare( strict_types = 1 );
 namespace Kigkonsult\Http\Message;
 
 use Psr\Http\Message\StreamInterface;
@@ -38,8 +37,10 @@ use function fread;
 use function fseek;
 use function ftell;
 use function fwrite;
+use function gettype;
 use function is_resource;
 use function is_string;
+use function sprintf;
 use function stream_get_contents;
 use function stream_get_meta_data;
 use function strlen;
@@ -72,13 +73,16 @@ class Stream implements StreamInterface
     private $stream;
 
     /**
+     * Return new instance, content OR streamWrapper
+     *
      * @param null|string           $content
      * @param null|string|resource  $streamWrapper
      * @param null|string           $mode
      * @throws InvalidArgumentException on any invalid element.
      * @throws RuntimeException on write error
      */
-    public function __construct( $content = null, $streamWrapper = null, $mode = null ) {
+    public function __construct( $content = null, $streamWrapper = null, $mode = null )
+    {
         static $FMTERR4 = 'Invalid body, resource or streamWrapper';
         switch( true ) {
             case ( is_resource( $streamWrapper )) :
@@ -94,7 +98,6 @@ class Stream implements StreamInterface
             break;
             default :
                 throw new InvalidArgumentException( $FMTERR4 );
-                break;
         }
     }
 
@@ -107,63 +110,62 @@ class Stream implements StreamInterface
      * @return Stream
      * @throws InvalidArgumentException on stream create error
      * @throws RuntimeException on stream write error
-     * @static
      */
-    public static function factory( $content = null, $streamWrapper = null, $mode = null ) {
+    public static function factory(
+        $content = null,
+        $streamWrapper = null,
+        $mode = null
+    ) : self
+    {
         return new Stream( $content, $streamWrapper, $mode );
     }
 
     /**
-     * Return a new stream, from a string (opt with wrapper+mode)
+     * Return a new stream from string
      *
-     * @param null|string   $content
-     * @param null|string   $streamWrapper
-     * @param null|string   $mode
+     * @param string   $content
      * @return Stream
      * @throws InvalidArgumentException on stream create error
      * @throws RuntimeException on stream write error
-     * @static
      */
-    public static function factoryFromString( $content = null, $streamWrapper = null, $mode = null ) {
-        return new Stream( $content, $streamWrapper, $mode );
+    public static function factoryFromString( string $content ) : self
+    {
+        return new Stream( $content );
     }
 
     /**
-     * Return a new stream, from resource
+     * Return a new stream from resource
      *
      * @param resource $resource
      * @return Stream
-     * @static
      */
-    public static function factoryFromResource( $resource ) {
+    public static function factoryFromResource( $resource ) : self
+    {
         return new Stream( null, $resource );
     }
 
     /**
-     * Create stream
+     * Create stream from streamWrapper ('php://memory' if null)
      *
      * @param null|string  $streamWrapper
      * @param null|string  $mode
      * @return resource
      * @throws InvalidArgumentException on stream error
-     * @access private
-     * @static
+     * @throws RuntimeException on write error
      */
-    private static function createStream( $streamWrapper, $mode ) {
+    private static function createStream( $streamWrapper = null, $mode = null )
+    {
         static $FMTERR1 = 'Can not open streamWrapper';
-        static $FMTERR2 = 'can not create resource from streamWrapper';
-        static $FMTERR3 = 'Resource type is not stream';
+        static $FMTERR2 = 'can not create resource from streamWrapper (%s)';
+        static $FMTERR3 = 'Resource type is not stream, got ';
         static $STREAM  = 'stream';
         static $errorHandler = [ __CLASS__, 'PhpErrors2Exception' ];
-        if( empty( $streamWrapper ) ) {
-            $streamWrapper = self::$streamWrapper;
-        }
-        if( empty( $mode ) ) {
-            $mode = self::$mode;
-        }
         set_error_handler( $errorHandler );
         try {
-            $stream = fopen( $streamWrapper, $mode );
+            $stream = fopen(
+                ( $streamWrapper ?? self::$streamWrapper ),
+                ( $mode ??self::$mode )
+            );
         }
         catch( RuntimeException $e ) {
             throw $e;
@@ -174,13 +176,10 @@ class Stream implements StreamInterface
         switch( true ) {
             case ( false === $stream ) :
                 throw new InvalidArgumentException( $FMTERR1 );
-                break;
             case( ! is_resource( $stream )) :
-                throw new InvalidArgumentException( $FMTERR2 );
-                break;
-            case( $STREAM !== get_resource_type( $stream )) :
-                throw new InvalidArgumentException( $FMTERR3 );
-                break;
+                throw new InvalidArgumentException( sprintf( $FMTERR2, gettype( $stream )));
+            case( $STREAM !== @get_resource_type( $stream )) :
+                throw new InvalidArgumentException( $FMTERR3 . gettype( $stream ) );
         }
         return $stream;
     }
@@ -190,16 +189,17 @@ class Stream implements StreamInterface
      *
      * @param StreamInterface $stream
      * @return bool
-     * @static
      */
-    public static function isStreamEmpty( StreamInterface $stream ) {
+    public static function isStreamEmpty( StreamInterface $stream ) : bool
+    {
         return empty( $stream->getSize());
     }
 
     /**
      * {@inheritdoc}
      */
-    public function __toString() {
+    public function __toString() : string
+    {
         static $EMPTY = '';
         if( ! $this->isReadable()) {
             return $EMPTY;
@@ -217,31 +217,35 @@ class Stream implements StreamInterface
     /**
      * {@inheritdoc}
      */
-    public function close() {
+    public function close()
+    {
         fclose( $this->stream );
     }
 
     /**
      * {@inheritdoc}
      */
-    public function detach() {
+    public function detach()
+    {
         $this->close();
         return null;
     }
 
     /**
-     * Get the size of the stream if known.
+     * Get the size of the stream.
      *
-     * @return int|null Returns the size in bytes if known, or null if unknown.
+     * @return int  Returns the size in bytes if known, or  0  if unknown.
      */
-    public function getSize() {
+    public function getSize() : int
+    {
         return strlen( $this->__toString());
     }
 
     /**
      * {@inheritdoc}
      */
-    public function tell() {
+    public function tell() : int
+    {
         static $FMTERR = 'Resource ftell error';
         $pos = ftell( $this->stream );
         if( false === $pos ) {
@@ -253,7 +257,8 @@ class Stream implements StreamInterface
     /**
      * {@inheritdoc}
      */
-    public function eof() {
+    public function eof() : bool
+    {
         static $EOF = 'eof';
         return $this->getMetadata( $EOF );
     }
@@ -261,7 +266,8 @@ class Stream implements StreamInterface
     /**
      * {@inheritdoc}
      */
-    public function isSeekable() {
+    public function isSeekable() : bool
+    {
         static $SEEKABLE = 'seekable';
         return $this->getMetadata( $SEEKABLE );
     }
@@ -269,7 +275,8 @@ class Stream implements StreamInterface
     /**
      * {@inheritdoc}
      */
-    public function seek( $offset, $whence = SEEK_SET ) {
+    public function seek( $offset, $whence = SEEK_SET )
+    {
         static $FMTERR1 = 'Resource is not seekable';
         static $FMTERR2 = 'Resource seek error';
         if( ! $this->isSeekable()) {
@@ -283,14 +290,16 @@ class Stream implements StreamInterface
     /**
      * {@inheritdoc}
      */
-    public function rewind() {
+    public function rewind()
+    {
         $this->seek( 0 );
     }
 
     /**
      * {@inheritdoc}
      */
-    public function isWritable() {
+    public function isWritable() : bool
+    {
         static $MODE   = 'mode';
         static $WRITEC = 'waxc+';
         return ( false !== strpbrk( $this->getMetadata( $MODE ), $WRITEC ));
@@ -299,7 +308,8 @@ class Stream implements StreamInterface
     /**
      * {@inheritdoc}
      */
-    public function write( $string ) {
+    public function write( $string ) : int
+    {
         static $FMTERR1 = 'Resource is not writable';
         static $FMTERR2 = 'Resource fwrite error';
         if( ! $this->isWritable()) {
@@ -315,7 +325,8 @@ class Stream implements StreamInterface
     /**
      * {@inheritdoc}
      */
-    public function isReadable() {
+    public function isReadable() : bool
+    {
         static $MODE  = 'mode';
         static $READC = 'r+';
         return ( false !== strpbrk( $this->getMetadata( $MODE ), $READC ));
@@ -324,15 +335,20 @@ class Stream implements StreamInterface
     /**
      * {@inheritdoc}
      */
-    public function read( $length ) {
+    public function read( $length ) : string
+    {
         static $FMTERR1 = 'Resource is not readable';
-        static $FMTERR2 = 'Resource fread error';
+        static $FMTERR2 = 'Int lenght required, got';
+        static $FMTERR3 = 'Resource fread error';
         if( ! $this->isReadable()) {
             throw new RuntimeException( $FMTERR1 );
         }
+        if( $length !== intval( $length )) {
+            throw new RuntimeException( $FMTERR2 . gettype( $length));
+        }
         $data = fread( $this->stream, $length );
         if( false === $data ) {
-            throw new RuntimeException( $FMTERR2 );
+            throw new RuntimeException( $FMTERR3 );
         }
         return $data;
     }
@@ -340,7 +356,8 @@ class Stream implements StreamInterface
     /**
      * {@inheritdoc}
      */
-    public function getContents() {
+    public function getContents() : string
+    {
         static $FMTERR1 = 'Resource is not readable';
         static $FMTERR2 = 'Resource read content error';
         if( ! $this->isReadable()) {
@@ -356,7 +373,8 @@ class Stream implements StreamInterface
     /**
      * {@inheritdoc}
      */
-    public function getMetadata( $key = null ) {
+    public function getMetadata( $key = null )
+    {
         $metaData = stream_get_meta_data( $this->stream );
         if( empty( $key )) {
             return $metaData;
@@ -372,10 +390,14 @@ class Stream implements StreamInterface
      * @param string $errFile
      * @param int    $errLine
      * @throws RuntimeException
-     * @access private
-     * @static
      */
-    private static function PhpErrors2Exception( $errNo, $errStr, $errFile, $errLine ) {
+    private static function PhpErrors2Exception(
+        int $errNo,
+        string $errStr,
+        string $errFile,
+        int $errLine
+    )
+    {
         static $FMT = '(%d) %s in %s(%d)';
         throw new RuntimeException( sprintf( $FMT, $errNo, $errStr, $errFile, $errLine ));
     }
